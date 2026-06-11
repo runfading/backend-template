@@ -10,22 +10,14 @@ mod service;
 
 #[derive(OpenApi)]
 #[openapi(tags(
-    (name = "blogs", description = "博客相关接口"),
+    (name = "demo", description = "demo"),
 ))]
 pub struct BlogDoc;
 
 pub fn routes() -> OpenApiRouter<AppState> {
     OpenApiRouter::with_openapi(BlogDoc::openapi()).nest(
-        "/blogs",
-        OpenApiRouter::new()
-            .routes(routes!(
-                handler::get_article,
-                handler::create_article,
-                handler::update_article,
-                handler::delete_article,
-            ))
-            .routes(routes!(handler::latest_articles, handler::upsert,))
-            .routes(routes!(handler::list_articles,)),
+        "/demo",
+        OpenApiRouter::new().routes(routes!(handler::latest_articles,)),
     )
 }
 
