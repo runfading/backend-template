@@ -36,10 +36,17 @@ async fn main() {
 }
 
 fn init_log() {
+    // 自定义时间格式（可按需调整）
+    let offset = time::UtcOffset::from_hms(8, 0, 0).expect("invalid utc offset");
+    let timer = tracing_subscriber::fmt::time::OffsetTime::new(
+        offset,
+        time::format_description::well_known::Rfc3339,
+    );
+
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
-        .with(tracing_subscriber::fmt::layer())
+        .with(tracing_subscriber::fmt::layer().with_timer(timer))
         .init();
 }
