@@ -1,5 +1,5 @@
-use crate::blogs::models::LatestArticles;
-use crate::blogs::repo;
+use crate::demo::models::LatestArticles;
+use crate::demo::repo;
 use crate::common::{ApiResponse, AppResult, DbPool};
 
 pub async fn latest_articles(pool: &DbPool) -> AppResult<Vec<LatestArticles>> {

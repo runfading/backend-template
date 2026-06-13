@@ -12,10 +12,10 @@ mod service;
 #[openapi(tags(
     (name = "demo", description = "demo"),
 ))]
-pub struct BlogDoc;
+pub struct DemoDoc;
 
 pub fn routes() -> OpenApiRouter<AppState> {
-    OpenApiRouter::with_openapi(BlogDoc::openapi()).nest(
+    OpenApiRouter::with_openapi(DemoDoc::openapi()).nest(
         "/demo",
         OpenApiRouter::new().routes(routes!(handler::latest_articles,)),
     )

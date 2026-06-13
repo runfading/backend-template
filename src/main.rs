@@ -1,4 +1,4 @@
-pub mod blogs;
+pub mod demo;
 pub mod common;
 pub mod config;
 pub mod db;
