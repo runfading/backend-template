@@ -4,3 +4,5 @@ port = 4000
 
 [database]
 url = "postgres://postgres:root@localhost:5432/postgres"
+max_connections = 100
+min_connections = 5

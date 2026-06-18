@@ -1,8 +1,8 @@
 use crate::error::AppError;
-use axum::Json;
 use axum::response::{IntoResponse, Response};
+use axum::Json;
+use sea_orm::DatabaseConnection;
 use serde::Serialize;
-use sqlx::PgPool;
 use std::fmt::Debug;
 use tracing::{debug, error};
 use utoipa::ToSchema;
@@ -19,9 +19,12 @@ pub struct AppState {
     pub db: DbPool,
 }
 
-pub type DbPool = PgPool;
-
+pub type DbPool = DatabaseConnection;
 pub type AppResult<T> = Result<ApiResponse<T>, AppError>;
+pub type DbError = sea_orm::DbErr;
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct Empty {}
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct ApiResponse<T> {
@@ -40,13 +43,17 @@ impl<T> ApiResponse<T> {
     }
 }
 
-impl ApiResponse<()> {
+impl ApiResponse<Empty> {
     pub fn err(code: u32, message: String) -> Self {
         Self {
             code,
             message,
             data: None,
         }
+    }
+
+    pub fn empty_ok() -> Self {
+        Self::ok(Empty {})
     }
 }
 

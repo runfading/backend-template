@@ -5,19 +5,26 @@ use utoipa_axum::routes;
 
 mod handler;
 pub mod models;
-mod repo;
 mod service;
 
 #[derive(OpenApi)]
 #[openapi(tags(
     (name = "demo", description = "demo"),
 ))]
-pub struct BlogDoc;
+pub struct DemoDoc;
 
 pub fn routes() -> OpenApiRouter<AppState> {
-    OpenApiRouter::with_openapi(BlogDoc::openapi()).nest(
+    OpenApiRouter::with_openapi(DemoDoc::openapi()).nest(
         "/demo",
-        OpenApiRouter::new().routes(routes!(handler::latest_articles,)),
+        OpenApiRouter::new()
+            // 同一种请求方式不能放一起
+            .routes(routes!(handler::list))
+            .routes(routes!(
+                handler::get,
+                handler::create,
+                handler::update,
+                handler::remove
+            )),
     )
 }
 

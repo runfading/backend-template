@@ -1,4 +1,4 @@
-pub mod blogs;
+pub mod demo;
 pub mod common;
 pub mod config;
 pub mod db;
@@ -18,7 +18,7 @@ async fn main() {
     init_log();
     init_config().expect("配置初始化失败");
     let setting = SETTINGS.get().expect("配置有误");
-    let pool = init_db(&setting.database.url)
+    let pool = init_db(&setting.database)
         .await
         .expect("数据库连接失败");
 

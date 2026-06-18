@@ -35,6 +35,8 @@ pub struct ServerConfig {
 #[derive(Debug, Clone, Deserialize)]
 pub struct DatabaseConfig {
     pub url: String,
+    pub max_connections: u32,
+    pub min_connections: u32,
 }
 
 pub fn load_config() -> Result<Settings, config::ConfigError> {
