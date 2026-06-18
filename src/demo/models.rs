@@ -8,26 +8,26 @@ pub struct SimpleDemo {
     pub id: i64,
 }
 
+impl Into<SimpleDemo> for Model {
+    fn into(self) -> SimpleDemo {
+        SimpleDemo {
+            name: self.name,
+            id: self.id,
+        }
+    }
+}
+
 #[derive(Deserialize, Debug, ToSchema)]
 pub struct CreateDemo {
-    pub folder_id: i64,
-    pub title: String,
-    pub description: String,
-    pub cover_url: Option<String>,
-    pub author: String,
-    pub content: String,
+    pub name: String,
+    pub description: Option<String>,
 }
 
 #[derive(Deserialize, Debug, ToSchema)]
 pub struct UpdateDemo {
     pub id: i64,
-    pub folder_id: Option<i64>,
-    pub title: Option<String>,
+    pub name: Option<String>,
     pub description: Option<String>,
-    pub cover_url: Option<String>,
-    pub author: Option<String>,
-    pub content: Option<String>,
-    pub is_pinned: Option<bool>,
 }
 
 #[sea_orm::model]
@@ -36,17 +36,10 @@ pub struct UpdateDemo {
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i64,
-    pub folder_id: i64,
-    pub title: String,
-    #[sea_orm(column_type = "Text")]
-    pub description: String,
+    pub name: String,
     #[sea_orm(column_type = "Text", nullable)]
-    pub cover_url: Option<String>,
-    pub author: String,
-    #[sea_orm(column_type = "Text")]
-    pub content: String,
-    pub is_pinned: bool,
-    pub created_at: DateTimeWithTimeZone,
+    pub description: Option<String>,
+    pub created_at: TimeDateTimeWithTimeZone,
 }
 
 impl ActiveModelBehavior for ActiveModel {}

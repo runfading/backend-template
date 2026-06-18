@@ -27,6 +27,5 @@ utoipa = "5.5.0"
 utoipa-axum = "0.2.0"
 # vendored feature直接将swagger-ui打包进create
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum", "vendored"] }
-chrono = { version = "0.4.44", features = ["serde"] }
 inventory = "0.3"
 time = "0.3.47"
