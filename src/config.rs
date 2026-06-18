@@ -1,8 +1,7 @@
 use config::{Config, Environment, File};
-use serde::Deserialize;
 use serde::de::DeserializeOwned;
+use serde::Deserialize;
 use std::sync::OnceLock;
-use tracing::info;
 
 pub fn build<T>(name: &str) -> Result<T, config::ConfigError>
 where
@@ -24,6 +23,8 @@ where
 pub struct Settings {
     pub server: ServerConfig,
     pub database: DatabaseConfig,
+    #[serde(default = "Default::default")]
+    pub log: LogConfig,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -37,6 +38,24 @@ pub struct DatabaseConfig {
     pub url: String,
     pub max_connections: u32,
     pub min_connections: u32,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(default)]
+pub struct LogConfig {
+    pub log_path: String,
+    pub name_prefix: String,
+    pub file_log_enable: bool,
+}
+
+impl Default for LogConfig {
+    fn default() -> Self {
+        Self {
+            log_path: "logs".to_string(),
+            name_prefix: "{{project-name}}.log".to_string(),
+            file_log_enable: false,
+        }
+    }
 }
 
 pub fn load_config() -> Result<Settings, config::ConfigError> {
@@ -53,6 +72,5 @@ pub static SETTINGS: OnceLock<Settings> = OnceLock::new();
 pub fn init_config() -> Result<(), config::ConfigError> {
     let settings = load_config()?;
     SETTINGS.set(settings).expect("配置初始化失败");
-    info!("配置初始化完成");
     Ok(())
 }
