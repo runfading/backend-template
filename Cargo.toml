@@ -1,16 +1,64 @@
 [package]
-name = "{{project-name}}"
+name = "backend-template"
 version = "0.1.0"
 edition = "2024"
 
+[workspace]
+members = ["crates/*"]
+
 [dependencies]
-axum = { version = "0.8.9" }
-tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread"] }
-tower-http = { version = "0.6.11", features = ["trace", "tracing", "request-id"] }
+application = { workspace = true }
+infrastructure = { workspace = true }
+rest = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
 # 前两个特性是必须的，mock 单元测试
-sea-orm = { version = "2.0.0-rc", features = ["sqlx-postgres", "runtime-tokio", "macros", "mock", "with-time"] }
-config = { version = "0.15.23", features = ["toml"] }
+sea-orm = { workspace = true, features = [
+    "sqlx-postgres",
+    "runtime-tokio",
+    "macros",
+    "mock",
+    "with-time",
+] }
+config = { workspace = true, features = ["toml"] }
+
+# 序列化
+serde = { workspace = true, features = ["derive"] }
+
+# 日志
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "time"] }
+tracing-appender = { workspace = true }
+
+# swagger doc
+time = { workspace = true }
+
+
+[workspace.dependencies]
+application = { path = "crates/application" }
+domain = { path = "crates/domain" }
+infrastructure = { path = "crates/infrastructure" }
+rest = { path = "crates/rest" }
+api = { path = "crates/api" }
+
+axum = { version = "0.8.9" }
+tokio = { version = "1.52.4", features = ["macros", "rt-multi-thread"] }
+tower-http = { version = "0.7.0", features = [
+    "trace",
+    "tracing",
+    "request-id",
+] }
+
+# 前两个特性是必须的，mock 单元测试
+sea-orm = { version = "2.0.0-rc.43", features = [
+    "sqlx-postgres",
+    "runtime-tokio",
+    "macros",
+    "mock",
+    "with-time",
+] }
+config = { version = "0.15.25", features = ["toml"] }
 thiserror = "2.0.18"
 
 # 序列化
@@ -28,4 +76,5 @@ utoipa-axum = "0.2.0"
 # vendored feature直接将swagger-ui打包进create
 utoipa-swagger-ui = { version = "9.0.2", features = ["axum", "vendored"] }
 inventory = "0.3"
-time = "0.3.47"
+time = "0.3.53"
+async-trait = "0.1.89"

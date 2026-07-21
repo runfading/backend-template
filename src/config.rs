@@ -1,6 +1,6 @@
 use config::{Config, Environment, File};
-use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use serde::de::DeserializeOwned;
 use std::sync::OnceLock;
 
 pub fn build<T>(name: &str) -> Result<T, config::ConfigError>
@@ -10,7 +10,7 @@ where
     // 创建配置构建器
     let settings = Config::builder()
         // 从 example.toml 文件读取
-        .add_source(config::File::with_name(name))
+        .add_source(File::with_name(name))
         .build()?;
 
     // 将配置解析为结构体
@@ -59,12 +59,12 @@ impl Default for LogConfig {
 }
 
 pub fn load_config() -> Result<Settings, config::ConfigError> {
-    Ok(Config::builder()
+    Config::builder()
         .add_source(File::with_name("config/default"))
         .add_source(File::with_name("config/local").required(false))
         .add_source(Environment::with_prefix("APP"))
         .build()?
-        .try_deserialize()?)
+        .try_deserialize()
 }
 
 pub static SETTINGS: OnceLock<Settings> = OnceLock::new();

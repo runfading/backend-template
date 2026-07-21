@@ -1,10 +1,8 @@
-use crate::common::DbPool;
 use crate::config::DatabaseConfig;
-use crate::error::AppError;
-use sea_orm::{ConnectOptions, Database};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
 use tracing::info;
 
-pub async fn init_db(database_config: &DatabaseConfig) -> Result<DbPool, AppError> {
+pub async fn init_db(database_config: &DatabaseConfig) -> Result<DatabaseConnection, DbErr> {
     let mut options = ConnectOptions::new(&database_config.url);
 
     options.max_connections(database_config.max_connections);

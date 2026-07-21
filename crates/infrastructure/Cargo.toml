@@ -1,0 +1,16 @@
+[package]
+name = "infrastructure"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+domain = { workspace = true }
+
+sea-orm = { workspace = true, features = [
+    "sqlx-postgres",
+    "runtime-tokio",
+    "macros",
+    "mock",
+    "with-time",
+] }
+time = { workspace = true }

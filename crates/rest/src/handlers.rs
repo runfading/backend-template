@@ -1,4 +1,6 @@
-use crate::common::{AppState, RouteRegistrar};
+mod demo;
+
+pub use crate::state::AppState;
 use axum::Router;
 use axum::extract::Request;
 use axum::http::HeaderName;
@@ -9,6 +11,12 @@ use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::{Level, info_span};
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_swagger_ui::SwaggerUi;
+
+pub struct RouteRegistrar {
+    pub routes_fn: fn() -> OpenApiRouter<AppState>,
+}
+
+inventory::collect!(RouteRegistrar);
 
 pub fn init_router(state: AppState) -> Router {
     let trace_layer = TraceLayer::new_for_http()

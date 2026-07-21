@@ -1,11 +1,10 @@
-use crate::common::{AppState, RouteRegistrar};
+mod handler;
+mod models;
+
+use crate::handlers::{AppState, RouteRegistrar};
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
-
-mod handler;
-pub mod models;
-mod service;
 
 #[derive(OpenApi)]
 #[openapi(tags(

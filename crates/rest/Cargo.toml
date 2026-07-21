@@ -1,0 +1,27 @@
+[package]
+name = "rest"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+application = { workspace = true }
+
+tracing = { workspace = true }
+axum = { version = "0.8.9" }
+tower-http = { version = "0.7.0", features = [
+    "trace",
+    "tracing",
+    "request-id",
+] }
+
+inventory = "0.3"
+
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+
+# swagger doc
+utoipa = { workspace = true }
+utoipa-axum = { workspace = true }
+# vendored feature直接将swagger-ui打包进create
+utoipa-swagger-ui = { workspace = true, features = ["axum", "vendored"] }
