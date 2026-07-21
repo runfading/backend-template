@@ -21,6 +21,7 @@ sea-orm = { workspace = true, features = [
     "mock",
     "with-time",
 ] }
+sea-orm-migration = { workspace = true }
 config = { workspace = true, features = ["toml"] }
 
 # 序列化
@@ -51,13 +52,14 @@ tower-http = { version = "0.7.0", features = [
 ] }
 
 # 前两个特性是必须的，mock 单元测试
-sea-orm = { version = "2.0.0-rc.43", features = [
+sea-orm = { version = "2.0.0", features = [
     "sqlx-postgres",
     "runtime-tokio",
     "macros",
     "mock",
     "with-time",
 ] }
+sea-orm-migration = "2.0.0"
 config = { version = "0.15.25", features = ["toml"] }
 thiserror = "2.0.18"
 

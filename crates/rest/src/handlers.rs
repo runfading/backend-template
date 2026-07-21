@@ -1,14 +1,14 @@
 mod demo;
 
 pub use crate::state::AppState;
-use axum::Router;
 use axum::extract::Request;
 use axum::http::HeaderName;
+use axum::Router;
 use tower_http::request_id::{
     MakeRequestUuid, PropagateRequestIdLayer, RequestId, SetRequestIdLayer,
 };
 use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
-use tracing::{Level, info_span};
+use tracing::{info_span, Level};
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -36,6 +36,13 @@ pub fn init_router(state: AppState) -> Router {
         })
         .on_request(DefaultOnRequest::new().level(Level::INFO))
         .on_response(DefaultOnResponse::new().level(Level::INFO));
+    // .on_response(|response: &axum::response::Response, latency: std::time::Duration, _span: &tracing::Span| {
+    //     if response.status().is_server_error() {
+    //         tracing::debug!(status = %response.status(), latency = ?latency, "finished processing request");
+    //     } else {
+    //         tracing::info!(status = %response.status(), latency = ?latency, "finished processing request");
+    //     }
+    // });
 
     Router::new()
         .merge(routers())

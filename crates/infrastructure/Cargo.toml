@@ -13,4 +13,7 @@ sea-orm = { workspace = true, features = [
     "mock",
     "with-time",
 ] }
+sea-orm-migration = { workspace = true }
 time = { workspace = true }
+# 数据库迁移顺序比较重要，还是显示设置比较好
+#inventory = { workspace = true }
