@@ -10,30 +10,28 @@ members = ["crates/*"]
 application = { workspace = true }
 infrastructure = { workspace = true }
 rest = { workspace = true }
-axum = { workspace = true }
+axum = { workspace = true, features = ["http1", "json", "tokio"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 
-# 前两个特性是必须的，mock 单元测试
 sea-orm = { workspace = true, features = [
     "sqlx-postgres",
     "runtime-tokio",
     "macros",
-    "mock",
     "with-time",
 ] }
-sea-orm-migration = { workspace = true }
+
 config = { workspace = true, features = ["toml"] }
 
 # 序列化
-serde = { workspace = true, features = ["derive"] }
+serde = { workspace = true }
 
 # 日志
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter", "time"] }
 tracing-appender = { workspace = true }
 
-# swagger doc
-time = { workspace = true }
+# 时间
+time = { workspace = true, features = ["formatting"] }
 
 
 [workspace.dependencies]
@@ -41,26 +39,15 @@ application = { path = "crates/application" }
 domain = { path = "crates/domain" }
 infrastructure = { path = "crates/infrastructure" }
 rest = { path = "crates/rest" }
-api = { path = "crates/api" }
 
-axum = { version = "0.8.9" }
-tokio = { version = "1.52.4", features = ["macros", "rt-multi-thread"] }
-tower-http = { version = "0.7.0", features = [
-    "trace",
-    "tracing",
-    "request-id",
-] }
+axum = { version = "0.8.9", default-features = false }
+tokio = { version = "1.52.4" }
+tower-http = { version = "0.7.0" }
 
-# 前两个特性是必须的，mock 单元测试
-sea-orm = { version = "2.0.0", features = [
-    "sqlx-postgres",
-    "runtime-tokio",
-    "macros",
-    "mock",
-    "with-time",
-] }
-sea-orm-migration = "2.0.0"
-config = { version = "0.15.25", features = ["toml"] }
+# PostgreSQL runtime model support used by the infrastructure crate.
+sea-orm = { version = "2.0.0", default-features = false }
+sea-orm-migration = { version = "2.0.0", default-features = false }
+config = { version = "0.15.25", default-features = false }
 thiserror = "2.0.18"
 
 # 序列化
@@ -69,14 +56,14 @@ serde_json = "1.0.150"
 
 # 日志
 tracing = "0.1.44"
-tracing-subscriber = { version = "0.3.23", features = ["env-filter", "time"] }
+tracing-subscriber = { version = "0.3.23" }
 tracing-appender = "0.2.5"
 
 # swagger doc
 utoipa = "5.5.0"
 utoipa-axum = "0.2.0"
-# vendored feature直接将swagger-ui打包进create
-utoipa-swagger-ui = { version = "9.0.2", features = ["axum", "vendored"] }
+
+utoipa-swagger-ui = { version = "9.0.2" }
 inventory = "0.3"
 time = "0.3.53"
 async-trait = "0.1.89"

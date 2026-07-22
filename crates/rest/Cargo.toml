@@ -7,16 +7,15 @@ edition = "2024"
 application = { workspace = true }
 
 tracing = { workspace = true }
-axum = { version = "0.8.9" }
-tower-http = { version = "0.7.0", features = [
+axum = { workspace = true }
+tower-http = { workspace = true, features = [
     "trace",
-    "tracing",
     "request-id",
 ] }
 
 inventory = "0.3"
 
-serde = { workspace = true, features = ["derive"] }
+serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 

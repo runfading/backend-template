@@ -1,23 +1,6 @@
 use config::{Config, Environment, File};
 use serde::Deserialize;
-use serde::de::DeserializeOwned;
 use std::sync::OnceLock;
-
-pub fn build<T>(name: &str) -> Result<T, config::ConfigError>
-where
-    T: DeserializeOwned,
-{
-    // 创建配置构建器
-    let settings = Config::builder()
-        // 从 example.toml 文件读取
-        .add_source(File::with_name(name))
-        .build()?;
-
-    // 将配置解析为结构体
-    let config = settings.try_deserialize()?;
-
-    Ok(config)
-}
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Settings {
