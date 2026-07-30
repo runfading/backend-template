@@ -1,13 +1,11 @@
+pub mod bootstrap;
 pub mod config;
 pub mod db;
 
-use crate::config::{init_config, LogConfig, SETTINGS};
+use crate::bootstrap::build_app_state;
+use crate::config::{LogConfig, SETTINGS, init_config};
 use crate::db::init_db;
-use application::service::demo::service::DemoApplicationService;
-use application::service::demo::DemoService;
-use infrastructure::dal::demo::SeaOrmDemoRepository;
-use rest::{init_router, AppState};
-use std::sync::Arc;
+use rest::init_router;
 use tracing::info;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -19,9 +17,7 @@ async fn main() {
     let _guard = init_logging(&setting.log);
     let pool = init_db(&setting.database).await.expect("数据库连接失败");
 
-    let repository = SeaOrmDemoRepository::new(pool);
-    let demo_service: Arc<dyn DemoApplicationService> = Arc::new(DemoService::new(repository));
-    let state = AppState { demo_service };
+    let state = build_app_state(pool);
 
     let listener =
         tokio::net::TcpListener::bind(format!("{}:{}", setting.server.host, setting.server.port))

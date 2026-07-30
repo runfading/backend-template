@@ -31,6 +31,7 @@ tracing-appender = { workspace = true }
 # 时间
 time = { workspace = true, features = ["formatting"] }
 
+inventory = { workspace = true }
 
 [workspace.dependencies]
 application = { path = "crates/application" }

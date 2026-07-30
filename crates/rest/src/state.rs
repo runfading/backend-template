@@ -1,8 +1,27 @@
-use application::service::demo::service::DemoApplicationService;
+use crate::service_registry::ServiceRegistry;
+use std::any::type_name;
 use std::sync::Arc;
 
-/// Axum-specific dependencies exposed to REST handlers.
+/// Dependencies used by inventory route registrars.
 #[derive(Clone)]
 pub struct AppState {
-    pub demo_service: Arc<dyn DemoApplicationService>,
+    services: Arc<ServiceRegistry>,
+}
+
+impl AppState {
+    pub fn new(services: ServiceRegistry) -> Self {
+        Self {
+            services: Arc::new(services),
+        }
+    }
+
+    pub(crate) fn require<T>(&self) -> T
+    where
+        T: Clone + Send + Sync + 'static,
+    {
+        self.services
+            .get::<T>()
+            .unwrap_or_else(|| panic!("service not registered: {}", type_name::<T>()))
+            .clone()
+    }
 }

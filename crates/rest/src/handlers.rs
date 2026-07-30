@@ -13,7 +13,7 @@ use utoipa_axum::router::OpenApiRouter;
 use utoipa_swagger_ui::SwaggerUi;
 
 pub struct RouteRegistrar {
-    pub routes_fn: fn() -> OpenApiRouter<AppState>,
+    pub routes_fn: fn(app_state: &AppState) -> OpenApiRouter<()>,
 }
 
 inventory::collect!(RouteRegistrar);
@@ -45,8 +45,7 @@ pub fn init_router(state: AppState) -> Router {
     // });
 
     Router::new()
-        .merge(routers())
-        .with_state(state)
+        .merge(routers(&state))
         .layer(trace_layer)
         .layer(PropagateRequestIdLayer::new(HeaderName::from_static(
             "x-request-id",
@@ -57,15 +56,15 @@ pub fn init_router(state: AppState) -> Router {
         ))
 }
 
-fn swagger_router(api: OpenApiRouter<AppState>) -> Router<AppState> {
+fn swagger_router(api: OpenApiRouter<()>) -> Router<()> {
     let (router, api) = api.split_for_parts();
     router.merge(SwaggerUi::new("/swagger-ui").url("/apidoc/openapi.json", api))
 }
 
-pub fn routers() -> Router<AppState> {
+pub fn routers(app_state: &AppState) -> Router<()> {
     let mut router = OpenApiRouter::new();
     for registrar in inventory::iter::<RouteRegistrar> {
-        router = router.merge((registrar.routes_fn)());
+        router = router.merge((registrar.routes_fn)(app_state));
     }
     let router = OpenApiRouter::from(swagger_router(router));
     Router::new().merge(router)

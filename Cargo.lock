@@ -362,6 +362,7 @@ dependencies = [
  "axum",
  "config",
  "infrastructure",
+ "inventory",
  "rest",
  "sea-orm",
  "serde",

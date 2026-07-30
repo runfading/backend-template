@@ -1,6 +1,6 @@
 use crate::common::{ApiResponse, ApiResult, Empty};
+use crate::handlers::demo::DemoState;
 use crate::handlers::demo::models::{CreateDemoReqDTO, DemoDTO, UpdateDemoReqDTO};
-use crate::AppState;
 use axum::extract::{Path, State};
 
 #[utoipa::path(
@@ -9,7 +9,7 @@ use axum::extract::{Path, State};
     tag = "demo",
     responses((status = 200, body = ApiResponse<Vec<DemoDTO>>))
 )]
-pub async fn list(State(app_state): State<AppState>) -> ApiResult<Vec<DemoDTO>> {
+pub async fn list(State(app_state): State<DemoState>) -> ApiResult<Vec<DemoDTO>> {
     ApiResponse::vec(app_state.demo_service.list().await?)
 }
 
@@ -20,7 +20,7 @@ pub async fn list(State(app_state): State<AppState>) -> ApiResult<Vec<DemoDTO>> 
     params(("id" = i64, Path, description = "note id")),
     responses((status = 200, body = ApiResponse<DemoDTO>))
 )]
-pub async fn get(State(app_state): State<AppState>, Path(id): Path<i64>) -> ApiResult<DemoDTO> {
+pub async fn get(State(app_state): State<DemoState>, Path(id): Path<i64>) -> ApiResult<DemoDTO> {
     ApiResponse::ok(app_state.demo_service.get(id).await?)
 }
 
@@ -32,7 +32,7 @@ pub async fn get(State(app_state): State<AppState>, Path(id): Path<i64>) -> ApiR
     responses((status = 200, body = ApiResponse<DemoDTO>))
 )]
 pub async fn create(
-    State(app_state): State<AppState>,
+    State(app_state): State<DemoState>,
     axum::Json(input): axum::Json<CreateDemoReqDTO>,
 ) -> ApiResult<DemoDTO> {
     ApiResponse::ok(app_state.demo_service.create(input.into()).await?)
@@ -46,7 +46,7 @@ pub async fn create(
     responses((status = 200, body = ApiResponse<DemoDTO>))
 )]
 pub async fn update(
-    State(app_state): State<AppState>,
+    State(app_state): State<DemoState>,
     axum::Json(input): axum::Json<UpdateDemoReqDTO>,
 ) -> ApiResult<DemoDTO> {
     ApiResponse::ok(app_state.demo_service.update(input.into()).await?)
@@ -59,7 +59,7 @@ pub async fn update(
     params(("id" = i64, Path, description = "note id")),
     responses((status = 200, body = ApiResponse<Empty>))
 )]
-pub async fn remove(State(app_state): State<AppState>, Path(id): Path<i64>) -> ApiResult<Empty> {
+pub async fn remove(State(app_state): State<DemoState>, Path(id): Path<i64>) -> ApiResult<Empty> {
     app_state.demo_service.delete(id).await?;
     ApiResponse::empty_ok()
 }
