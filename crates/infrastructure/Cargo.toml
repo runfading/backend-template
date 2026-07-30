@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-domain = { workspace = true }
+sea-orm-migration = { workspace = true, default-features = false, features = [
+    "sqlx-postgres",
+    "runtime-tokio",
+] }
+config = { workspace = true, features = ["toml"] }
 
-sea-orm = { workspace = true, features = ["macros", "with-time"] }
-sea-orm-migration = { workspace = true, default-features = false, features = ["sqlx-postgres", "runtime-tokio"] }
-time = { workspace = true }
-# 数据库迁移顺序比较重要，还是显示设置比较好
-#inventory = { workspace = true }
+# 序列化
+serde = { workspace = true }

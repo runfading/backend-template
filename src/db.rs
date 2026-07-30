@@ -1,4 +1,4 @@
-use crate::config::DatabaseConfig;
+use infrastructure::config::DatabaseConfig;
 use infrastructure::migration;
 use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
 use tracing::info;

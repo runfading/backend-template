@@ -1,11 +1,8 @@
-pub mod bootstrap;
-pub mod config;
 pub mod db;
 
-use crate::bootstrap::build_app_state;
-use crate::config::{LogConfig, SETTINGS, init_config};
 use crate::db::init_db;
-use rest::init_router;
+use infrastructure::config::{LogConfig, SETTINGS, init_config};
+use rest::{AppState, init_router};
 use tracing::info;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -17,7 +14,7 @@ async fn main() {
     let _guard = init_logging(&setting.log);
     let pool = init_db(&setting.database).await.expect("数据库连接失败");
 
-    let state = build_app_state(pool);
+    let state = AppState::new(pool);
 
     let listener =
         tokio::net::TcpListener::bind(format!("{}:{}", setting.server.host, setting.server.port))

@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-domain = { workspace = true }
-
 thiserror = { workspace = true }
-async-trait = { workspace = true }
+sea-orm = { workspace = true, features = ["macros", "with-time"] }
+time = { workspace = true }

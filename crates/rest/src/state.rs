@@ -1,27 +1,17 @@
-use crate::service_registry::ServiceRegistry;
-use std::any::type_name;
-use std::sync::Arc;
+use sea_orm::DatabaseConnection;
 
-/// Dependencies used by inventory route registrars.
+/// Shared infrastructure used to construct each business router state.
 #[derive(Clone)]
 pub struct AppState {
-    services: Arc<ServiceRegistry>,
+    db: DatabaseConnection,
 }
 
 impl AppState {
-    pub fn new(services: ServiceRegistry) -> Self {
-        Self {
-            services: Arc::new(services),
-        }
+    pub fn new(db: DatabaseConnection) -> Self {
+        Self { db }
     }
 
-    pub(crate) fn require<T>(&self) -> T
-    where
-        T: Clone + Send + Sync + 'static,
-    {
-        self.services
-            .get::<T>()
-            .unwrap_or_else(|| panic!("service not registered: {}", type_name::<T>()))
-            .clone()
+    pub(crate) fn db(&self) -> &DatabaseConnection {
+        &self.db
     }
 }

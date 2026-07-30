@@ -1,4 +1,4 @@
-use domain::biz::demo::models::{CreateDemo, Demo, UpdateDemo};
+use crate::service::demo::entity::Model;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CreateDemoCommand {
@@ -6,30 +6,11 @@ pub struct CreateDemoCommand {
     pub description: Option<String>,
 }
 
-impl From<CreateDemoCommand> for CreateDemo {
-    fn from(value: CreateDemoCommand) -> Self {
-        Self {
-            name: value.name,
-            description: value.description,
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpdateDemoCommand {
     pub id: i64,
     pub name: Option<String>,
     pub description: Option<String>,
-}
-
-impl From<UpdateDemoCommand> for UpdateDemo {
-    fn from(value: UpdateDemoCommand) -> Self {
-        Self {
-            id: value.id.into(),
-            name: value.name,
-            description: value.description,
-        }
-    }
 }
 
 impl UpdateDemoCommand {
@@ -49,20 +30,10 @@ pub struct DemoDetails {
     pub description: Option<String>,
 }
 
-impl From<Demo> for DemoDetails {
-    fn from(value: Demo) -> Self {
+impl From<Model> for DemoDetails {
+    fn from(value: Model) -> Self {
         Self {
-            id: value.id.value(),
-            name: value.name,
-            description: value.description,
-        }
-    }
-}
-
-impl From<DemoDetails> for Demo {
-    fn from(value: DemoDetails) -> Self {
-        Self {
-            id: value.id.into(),
+            id: value.id,
             name: value.name,
             description: value.description,
         }

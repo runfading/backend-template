@@ -1,5 +1,3 @@
-use domain::error::DomainError;
-
 #[derive(Debug, thiserror::Error)]
 #[error("{message}")]
 pub struct BizError {
@@ -12,6 +10,9 @@ pub enum ApplicationError {
     #[error(transparent)]
     BizError(#[from] BizError),
 
+    #[error("not found: {0}")]
+    NotFound(String),
+
     #[error(transparent)]
-    DomainError(#[from] DomainError),
+    Database(#[from] sea_orm::DbErr),
 }

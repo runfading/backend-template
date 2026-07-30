@@ -1,46 +1,64 @@
+mod entity;
 pub mod models;
-pub mod service;
 
 use crate::common::{ApplicationResponse, ApplicationResult};
+use crate::error::ApplicationError;
+use crate::service::demo::entity::{ActiveModel, Entity};
 use crate::service::demo::models::{CreateDemoCommand, DemoDetails, UpdateDemoCommand};
-use crate::service::demo::service::DemoApplicationService;
-use domain::biz::demo::domain::DemoRepository;
+use sea_orm::entity::prelude::*;
+use sea_orm::{ActiveModelTrait, EntityTrait, Set, TryIntoModel};
 
-#[derive(Debug, Clone)]
-pub struct DemoService<R> {
-    repository: R,
+pub async fn list(db: &DatabaseConnection) -> ApplicationResult<Vec<DemoDetails>> {
+    let demos = Entity::find().all(db).await?;
+    ApplicationResponse::vec(demos)
 }
 
-impl<R> DemoService<R> {
-    pub fn new(repository: R) -> Self {
-        Self { repository }
-    }
+pub async fn get(db: &DatabaseConnection, id: i64) -> ApplicationResult<DemoDetails> {
+    let demo = Entity::find_by_id(id)
+        .one(db)
+        .await?
+        .ok_or_else(|| ApplicationError::NotFound(format!("Demo id: {id}")))?;
+    ApplicationResponse::ok(demo)
 }
 
-#[async_trait::async_trait]
-impl<R> DemoApplicationService for DemoService<R>
-where
-    R: DemoRepository + Send + Sync,
-{
-    async fn list(&self) -> ApplicationResult<Vec<DemoDetails>> {
-        // self.repository.list().await?
-        ApplicationResponse::vec(self.repository.list().await?)
-    }
+pub async fn create(
+    db: &DatabaseConnection,
+    command: CreateDemoCommand,
+) -> ApplicationResult<DemoDetails> {
+    let active_model = ActiveModel {
+        name: Set(command.name),
+        description: Set(command.description),
+        created_at: Set(time::OffsetDateTime::now_utc()),
+        ..Default::default()
+    };
 
-    async fn get(&self, id: i64) -> ApplicationResult<DemoDetails> {
-        ApplicationResponse::optional(self.repository.find_by_id(id).await?)
-    }
+    let demo = active_model.save(db).await?.try_into_model()?;
+    ApplicationResponse::ok(demo)
+}
 
-    async fn create(&self, command: CreateDemoCommand) -> ApplicationResult<DemoDetails> {
-        ApplicationResponse::ok(self.repository.save(command.into()).await?)
-    }
+pub async fn update(
+    db: &DatabaseConnection,
+    command: UpdateDemoCommand,
+) -> ApplicationResult<DemoDetails> {
+    let model = Entity::find_by_id(command.id)
+        .one(db)
+        .await?
+        .ok_or_else(|| ApplicationError::NotFound(format!("Demo id: {}", command.id)))?;
+    let mut active_model: ActiveModel = model.into();
 
-    async fn update(&self, command: UpdateDemoCommand) -> ApplicationResult<DemoDetails> {
-        ApplicationResponse::ok(self.repository.update(command.into()).await?)
+    if let Some(name) = command.name {
+        active_model.name = Set(name);
     }
+    active_model.description = Set(command.description);
 
-    async fn delete(&self, id: i64) -> ApplicationResult<()> {
-        self.repository.delete(id).await?;
-        ApplicationResponse::empty_ok()
+    let demo = active_model.update(db).await?.try_into_model()?;
+    ApplicationResponse::ok(demo)
+}
+
+pub async fn delete(db: &DatabaseConnection, id: i64) -> ApplicationResult<()> {
+    let result = Entity::delete_by_id(id).exec(db).await?;
+    if result.rows_affected == 0 {
+        return Err(ApplicationError::NotFound(format!("Demo id: {id}")));
     }
+    ApplicationResponse::empty_ok()
 }

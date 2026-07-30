@@ -1,2 +1,2 @@
-pub mod dal;
 pub mod migration;
+pub mod config;

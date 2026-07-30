@@ -7,7 +7,6 @@ edition = "2024"
 members = ["crates/*"]
 
 [dependencies]
-application = { workspace = true }
 infrastructure = { workspace = true }
 rest = { workspace = true }
 axum = { workspace = true, features = ["http1", "json", "tokio"] }
@@ -18,11 +17,6 @@ sea-orm = { workspace = true, features = [
     "runtime-tokio",
 ] }
 
-config = { workspace = true, features = ["toml"] }
-
-# 序列化
-serde = { workspace = true }
-
 # 日志
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["env-filter", "time"] }
@@ -31,11 +25,8 @@ tracing-appender = { workspace = true }
 # 时间
 time = { workspace = true, features = ["formatting"] }
 
-inventory = { workspace = true }
-
 [workspace.dependencies]
 application = { path = "crates/application" }
-domain = { path = "crates/domain" }
 infrastructure = { path = "crates/infrastructure" }
 rest = { path = "crates/rest" }
 
@@ -65,4 +56,3 @@ utoipa-axum = "0.2.0"
 utoipa-swagger-ui = { version = "9.0.2" }
 inventory = "0.3"
 time = "0.3.53"
-async-trait = "0.1.89"

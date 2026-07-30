@@ -21,17 +21,6 @@ impl<T> ApplicationResponse<T> {
         })
     }
 
-    pub fn optional<R>(data: Option<T>) -> ApplicationResult<R>
-    where
-        R: From<T>,
-    {
-        Ok(ApplicationResponse::<R> {
-            code: 0,
-            message: "success".to_string(),
-            data: data.map(Into::into),
-        })
-    }
-
     pub fn vec<R>(data: Vec<T>) -> ApplicationResult<Vec<R>>
     where
         R: From<T>,
@@ -44,16 +33,6 @@ impl<T> ApplicationResponse<T> {
         })
     }
 }
-
-// impl<T> ApplicationResponse<T> {
-//     pub fn ok(data: T) -> ApplicationResult<T> {
-//         Ok(Self {
-//             code: 0,
-//             message: "success".into(),
-//             data: Some(data),
-//         })
-//     }
-// }
 
 impl ApplicationResponse<()> {
     pub fn empty_ok() -> ApplicationResult<()> {
