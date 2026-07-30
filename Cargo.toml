@@ -16,8 +16,6 @@ tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 sea-orm = { workspace = true, features = [
     "sqlx-postgres",
     "runtime-tokio",
-    "macros",
-    "with-time",
 ] }
 
 config = { workspace = true, features = ["toml"] }

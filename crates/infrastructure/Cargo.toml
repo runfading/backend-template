@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 domain = { workspace = true }
 
-sea-orm = { workspace = true }
+sea-orm = { workspace = true, features = ["macros", "with-time"] }
 sea-orm-migration = { workspace = true, default-features = false, features = ["sqlx-postgres", "runtime-tokio"] }
 time = { workspace = true }
 # 数据库迁移顺序比较重要，还是显示设置比较好

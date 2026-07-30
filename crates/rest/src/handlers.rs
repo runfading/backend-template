@@ -1,14 +1,14 @@
 mod demo;
 
 pub use crate::state::AppState;
+use axum::Router;
 use axum::extract::Request;
 use axum::http::HeaderName;
-use axum::Router;
 use tower_http::request_id::{
     MakeRequestUuid, PropagateRequestIdLayer, RequestId, SetRequestIdLayer,
 };
 use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
-use tracing::{info_span, Level};
+use tracing::{Level, info_span};
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_swagger_ui::SwaggerUi;
 
