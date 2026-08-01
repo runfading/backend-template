@@ -1,4 +1,4 @@
-use crate::common::ApiResponse;
+use api::{ApiResponse, INTERNAL_SERVER_ERROR_CODE, NOT_FOUND_CODE};
 use application::error::ApplicationError;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -10,28 +10,27 @@ pub enum ApiError {
     ApplicationError(#[from] ApplicationError),
 }
 
-pub type ApiResult<T> = Result<T, ApiError>;
+pub type ApiResult<T> = Result<ApiResponse<T>, ApiError>;
 
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
-        let (status, code, message) = match self {
-            ApiError::ApplicationError(error) => match error {
-                ApplicationError::BizError(biz) => {
-                    (StatusCode::OK, biz.code, biz.message.to_string())
-                }
-                ApplicationError::NotFound(message) => (StatusCode::NOT_FOUND, 4040, message),
-                _ => (
+        let (status, code, message) = match &self {
+            ApiError::ApplicationError(ApplicationError::BizError(biz)) => {
+                (StatusCode::OK, biz.code, biz.message.to_string())
+            }
+            ApiError::ApplicationError(ApplicationError::NotFound(message)) => {
+                (StatusCode::NOT_FOUND, NOT_FOUND_CODE, message.clone())
+            }
+            other => {
+                error!(error = %other, "internal server error");
+                (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    9999,
+                    INTERNAL_SERVER_ERROR_CODE,
                     "Internal Server Error".to_string(),
-                ),
-            },
+                )
+            }
         };
 
-        if status.is_server_error() {
-            error!(status = %status, code, message, "request failed");
-        }
-
-        (status, ApiResponse::err(code, message.to_string())).into_response()
+        (status, ApiResponse::err(code, message)).into_response()
     }
 }

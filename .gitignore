@@ -2,3 +2,5 @@
 .idea
 .claude
 .vscode
+logs/
+config/local.toml

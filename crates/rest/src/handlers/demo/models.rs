@@ -1,4 +1,4 @@
-use application::service::demo::models::{CreateDemoCommand, DemoDetails, UpdateDemoCommand};
+use application::service::demo::models::{CreateDemoCommand, DemoDetails};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -19,29 +19,14 @@ impl From<CreateDemoReqDTO> for CreateDemoCommand {
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, ToSchema)]
 pub struct UpdateDemoReqDTO {
-    pub id: i64,
-    pub name: Option<String>,
+    pub name: String,
     pub description: Option<String>,
 }
 
-impl UpdateDemoReqDTO {
-    pub fn new(id: i64, name: Option<String>, description: Option<String>) -> Self {
-        UpdateDemoReqDTO {
-            id,
-            name,
-            description,
-        }
-    }
-}
-
-impl From<UpdateDemoReqDTO> for UpdateDemoCommand {
-    fn from(value: UpdateDemoReqDTO) -> Self {
-        Self {
-            id: value.id,
-            name: value.name,
-            description: value.description,
-        }
-    }
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize, ToSchema)]
+pub struct PatchDemoReqDTO {
+    pub name: Option<String>,
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, ToSchema)]

@@ -23,7 +23,8 @@ impl MigrationTrait for Migration {
                     .col(
                         ColumnDef::new(Demo::CreatedAt)
                             .timestamp_with_time_zone()
-                            .not_null(),
+                            .not_null()
+                            .default(Expr::current_timestamp()),
                     )
                     .to_owned(),
             )

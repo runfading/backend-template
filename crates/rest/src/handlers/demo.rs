@@ -16,12 +16,14 @@ pub fn routes() -> OpenApiRouter<AppState> {
     OpenApiRouter::with_openapi(DemoDoc::openapi()).nest(
         "/demo",
         OpenApiRouter::new()
-            // 同一种请求方式不能放一起
+            // utoipa-axum 限制：同一个 routes! 宏内不允许出现重复的请求方法
             .routes(routes!(handler::list))
+            .routes(routes!(handler::page))
             .routes(routes!(
                 handler::get,
                 handler::create,
                 handler::update,
+                handler::patch,
                 handler::remove
             )),
     )

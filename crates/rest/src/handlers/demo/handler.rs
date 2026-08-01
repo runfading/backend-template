@@ -1,8 +1,12 @@
 use crate::AppState;
-use crate::common::{ApiResponse, ApiResult, Empty};
-use crate::handlers::demo::models::{CreateDemoReqDTO, DemoDTO, UpdateDemoReqDTO};
+use crate::error::ApiResult;
+use crate::handlers::demo::models::{
+    CreateDemoReqDTO, DemoDTO, PatchDemoReqDTO, UpdateDemoReqDTO,
+};
+use api::{ApiResponse, Empty, PageQuery, PageResult};
 use application::service::demo as demo_application;
-use axum::extract::{Path, State};
+use application::service::demo::models::{PatchDemoCommand, UpdateDemoCommand};
+use axum::extract::{Path, Query, State};
 
 #[utoipa::path(
     get,
@@ -11,18 +15,36 @@ use axum::extract::{Path, State};
     responses((status = 200, body = ApiResponse<Vec<DemoDTO>>))
 )]
 pub async fn list(State(state): State<AppState>) -> ApiResult<Vec<DemoDTO>> {
-    ApiResponse::vec(demo_application::list(state.db()).await?)
+    Ok(demo_application::list(state.db())
+        .await?
+        .map(|items| items.into_iter().map(Into::into).collect()))
+}
+
+#[utoipa::path(
+    get,
+    path = "/page",
+    tag = "demo",
+    params(PageQuery),
+    responses((status = 200, body = ApiResponse<PageResult<DemoDTO>>))
+)]
+pub async fn page(
+    State(state): State<AppState>,
+    Query(query): Query<PageQuery>,
+) -> ApiResult<PageResult<DemoDTO>> {
+    Ok(demo_application::page(state.db(), query)
+        .await?
+        .map(|page| page.map(Into::into)))
 }
 
 #[utoipa::path(
     get,
     path = "/{id}",
     tag = "demo",
-    params(("id" = i64, Path, description = "note id")),
+    params(("id" = i64, Path, description = "demo id")),
     responses((status = 200, body = ApiResponse<DemoDTO>))
 )]
 pub async fn get(State(state): State<AppState>, Path(id): Path<i64>) -> ApiResult<DemoDTO> {
-    ApiResponse::ok(demo_application::get(state.db(), id).await?)
+    Ok(demo_application::get(state.db(), id).await?.map(Into::into))
 }
 
 #[utoipa::path(
@@ -36,31 +58,56 @@ pub async fn create(
     State(state): State<AppState>,
     axum::Json(input): axum::Json<CreateDemoReqDTO>,
 ) -> ApiResult<DemoDTO> {
-    ApiResponse::ok(demo_application::create(state.db(), input.into()).await?)
+    Ok(demo_application::create(state.db(), input.into())
+        .await?
+        .map(Into::into))
 }
 
 #[utoipa::path(
     put,
-    path = "/update",
+    path = "/{id}",
     tag = "demo",
+    params(("id" = i64, Path, description = "demo id")),
     request_body = UpdateDemoReqDTO,
     responses((status = 200, body = ApiResponse<DemoDTO>))
 )]
 pub async fn update(
     State(state): State<AppState>,
+    Path(id): Path<i64>,
     axum::Json(input): axum::Json<UpdateDemoReqDTO>,
 ) -> ApiResult<DemoDTO> {
-    ApiResponse::ok(demo_application::update(state.db(), input.into()).await?)
+    let command = UpdateDemoCommand::new(id, input.name, input.description);
+    Ok(demo_application::update(state.db(), command)
+        .await?
+        .map(Into::into))
+}
+
+#[utoipa::path(
+    patch,
+    path = "/{id}",
+    tag = "demo",
+    params(("id" = i64, Path, description = "demo id")),
+    request_body = PatchDemoReqDTO,
+    responses((status = 200, body = ApiResponse<DemoDTO>))
+)]
+pub async fn patch(
+    State(state): State<AppState>,
+    Path(id): Path<i64>,
+    axum::Json(input): axum::Json<PatchDemoReqDTO>,
+) -> ApiResult<DemoDTO> {
+    let command = PatchDemoCommand::new(id, input.name, input.description);
+    Ok(demo_application::patch(state.db(), command)
+        .await?
+        .map(Into::into))
 }
 
 #[utoipa::path(
     delete,
     path = "/{id}",
     tag = "demo",
-    params(("id" = i64, Path, description = "note id")),
+    params(("id" = i64, Path, description = "demo id")),
     responses((status = 200, body = ApiResponse<Empty>))
 )]
 pub async fn remove(State(state): State<AppState>, Path(id): Path<i64>) -> ApiResult<Empty> {
-    demo_application::delete(state.db(), id).await?;
-    ApiResponse::empty_ok()
+    Ok(demo_application::delete(state.db(), id).await?)
 }

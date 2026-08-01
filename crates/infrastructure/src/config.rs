@@ -1,4 +1,4 @@
-use config::{Config, Environment, File};
+use config::{Config, File};
 use serde::Deserialize;
 use std::sync::OnceLock;
 
@@ -6,7 +6,7 @@ use std::sync::OnceLock;
 pub struct Settings {
     pub server: ServerConfig,
     pub database: DatabaseConfig,
-    #[serde(default = "Default::default")]
+    #[serde(default)]
     pub log: LogConfig,
 }
 
@@ -24,19 +24,36 @@ pub struct DatabaseConfig {
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(default)]
 pub struct LogConfig {
+    #[serde(default = "default_log_path")]
     pub log_path: String,
+    #[serde(default = "default_name_prefix")]
     pub name_prefix: String,
+    #[serde(default)]
     pub file_log_enable: bool,
+    #[serde(default = "default_timezone_offset")]
+    pub timezone_offset: i32,
+}
+
+fn default_log_path() -> String {
+    "logs".to_string()
+}
+
+fn default_name_prefix() -> String {
+    "{{project-name}}.log".to_string()
+}
+
+fn default_timezone_offset() -> i32 {
+    8
 }
 
 impl Default for LogConfig {
     fn default() -> Self {
         Self {
-            log_path: "logs".to_string(),
-            name_prefix: "{{project-name}}.log".to_string(),
+            log_path: default_log_path(),
+            name_prefix: default_name_prefix(),
             file_log_enable: false,
+            timezone_offset: default_timezone_offset(),
         }
     }
 }
@@ -45,7 +62,6 @@ pub fn load_config() -> Result<Settings, config::ConfigError> {
     Config::builder()
         .add_source(File::with_name("config/default"))
         .add_source(File::with_name("config/local").required(false))
-        .add_source(Environment::with_prefix("APP"))
         .build()?
         .try_deserialize()
 }

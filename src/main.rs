@@ -1,4 +1,4 @@
-pub mod db;
+mod db;
 
 use crate::db::init_db;
 use infrastructure::config::{LogConfig, SETTINGS, init_config};
@@ -33,7 +33,8 @@ fn init_logging(log_config: &LogConfig) -> Option<tracing_appender::non_blocking
     let file_name_prefix = log_config.name_prefix.as_str();
 
     // 自定义时间格式（可按需调整）
-    let offset = time::UtcOffset::from_hms(8, 0, 0).expect("invalid utc offset");
+    let offset = time::UtcOffset::from_hms(log_config.timezone_offset as i8, 0, 0)
+        .expect("invalid utc offset");
     let timer = tracing_subscriber::fmt::time::OffsetTime::new(
         offset,
         time::format_description::well_known::Rfc3339,

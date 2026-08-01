@@ -1,4 +1,3 @@
-pub mod common;
 pub mod error;
 pub mod handlers;
 pub mod state;

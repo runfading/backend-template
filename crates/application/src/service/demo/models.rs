@@ -9,13 +9,30 @@ pub struct CreateDemoCommand {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpdateDemoCommand {
     pub id: i64,
-    pub name: Option<String>,
+    pub name: String,
     pub description: Option<String>,
 }
 
 impl UpdateDemoCommand {
-    pub fn new(id: i64, name: Option<String>, description: Option<String>) -> Self {
+    pub fn new(id: i64, name: String, description: Option<String>) -> Self {
         UpdateDemoCommand {
+            id,
+            name,
+            description,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PatchDemoCommand {
+    pub id: i64,
+    pub name: Option<String>,
+    pub description: Option<String>,
+}
+
+impl PatchDemoCommand {
+    pub fn new(id: i64, name: Option<String>, description: Option<String>) -> Self {
+        PatchDemoCommand {
             id,
             name,
             description,

@@ -26,6 +26,7 @@ tracing-appender = { workspace = true }
 time = { workspace = true, features = ["formatting"] }
 
 [workspace.dependencies]
+api = { path = "crates/api" }
 application = { path = "crates/application" }
 infrastructure = { path = "crates/infrastructure" }
 rest = { path = "crates/rest" }

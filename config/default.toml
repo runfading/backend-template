@@ -6,4 +6,10 @@ port = 4000
 url = "postgres://postgres:root@localhost:5432/postgres"
 max_connections = 100
 min_connections = 5
+
 [log]
+# 以下配置均可省略，使用代码默认值
+# file_log_enable = true
+# log_path = "logs"
+# name_prefix = "{{project-name}}.log"
+# timezone_offset = 8

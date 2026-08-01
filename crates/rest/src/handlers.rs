@@ -36,13 +36,6 @@ pub fn init_router(state: AppState) -> Router {
         })
         .on_request(DefaultOnRequest::new().level(Level::INFO))
         .on_response(DefaultOnResponse::new().level(Level::INFO));
-    // .on_response(|response: &axum::response::Response, latency: std::time::Duration, _span: &tracing::Span| {
-    //     if response.status().is_server_error() {
-    //         tracing::debug!(status = %response.status(), latency = ?latency, "finished processing request");
-    //     } else {
-    //         tracing::info!(status = %response.status(), latency = ?latency, "finished processing request");
-    //     }
-    // });
 
     Router::new()
         .merge(routers())
