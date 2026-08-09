@@ -1,4 +1,14 @@
 [template]
+cargo_generate_version = ">=0.10.0"
 ignore = [
     "target",
+]
+
+[placeholders]
+auth = { type = "bool", prompt = "是否启用 JWT 认证？", default = true }
+
+[conditional.'auth == false']
+ignore = [
+    "crates/rest/src/auth.rs",
+    "crates/rest/src/handlers/auth.rs",
 ]

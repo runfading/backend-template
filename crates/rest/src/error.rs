@@ -9,11 +9,13 @@ pub enum ApiError {
     #[error(transparent)]
     ApplicationError(#[from] ApplicationError),
 
+{%- if auth %}
     #[error("unauthorized: {0}")]
     Unauthorized(&'static str),
 
     #[error("failed to create access token")]
     TokenCreation(#[source] jsonwebtoken::errors::Error),
+{%- endif %}
 }
 
 pub type ApiResult<T> = Result<ApiResponse<T>, ApiError>;
@@ -29,11 +31,13 @@ impl IntoResponse for ApiError {
                 ApiErrorCode::NOT_FOUND.code(),
                 message.clone(),
             ),
+{%- if auth %}
             ApiError::Unauthorized(message) => (
                 StatusCode::UNAUTHORIZED,
                 ApiErrorCode::UNAUTHORIZED.code(),
                 message.to_string(),
             ),
+{%- endif %}
             other => {
                 error!(error = %other, "internal server error");
                 (

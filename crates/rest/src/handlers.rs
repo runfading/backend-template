@@ -1,12 +1,16 @@
-mod auth;
-mod demo;
+{% if auth %}mod auth;
+{% endif %}mod demo;
 
+{%- if auth %}
 use crate::auth::require_auth;
+{%- endif %}
 pub use crate::state::AppState;
 use axum::Router;
 use axum::extract::{DefaultBodyLimit, Request};
 use axum::http::{HeaderName, HeaderValue, Method, StatusCode, header};
+{%- if auth %}
 use axum::middleware;
+{%- endif %}
 use std::time::Duration;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use tower_http::request_id::{
@@ -15,7 +19,9 @@ use tower_http::request_id::{
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::{Level, info_span};
+{%- if auth %}
 use utoipa::openapi::security::{Http, HttpAuthScheme, SecurityRequirement, SecurityScheme};
+{%- endif %}
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -91,6 +97,7 @@ pub fn init_router(state: AppState, config: RouterConfig) -> Router {
 }
 
 fn swagger_router(api: OpenApiRouter<AppState>) -> Router<AppState> {
+{%- if auth %}
     let (router, mut api) = api.split_for_parts();
     let components = api.components.get_or_insert_default();
     components.add_security_scheme(
@@ -101,6 +108,9 @@ fn swagger_router(api: OpenApiRouter<AppState>) -> Router<AppState> {
         "bearerAuth",
         Vec::<String>::new(),
     )]);
+{%- else %}
+    let (router, api) = api.split_for_parts();
+{%- endif %}
     router.merge(SwaggerUi::new("/swagger-ui").url("/apidoc/openapi.json", api))
 }
 
@@ -110,9 +120,13 @@ pub fn routers(state: AppState) -> Router<AppState> {
         protected_router = protected_router.merge((registrar.routes_fn)());
     }
 
+{%- if auth %}
     // 需要token校验的
     let protected_router =
         protected_router.route_layer(middleware::from_fn_with_state(state, require_auth));
+{%- else %}
+    let _ = state;
+{%- endif %}
 
     // 无需校验的
     let mut public_router = OpenApiRouter::new();
@@ -128,7 +142,10 @@ pub fn routers(state: AppState) -> Router<AppState> {
 #[cfg(test)]
 mod tests {
     use super::{RouterConfig, init_router, routers};
-    use crate::{AppState, JwtConfig};
+    use crate::AppState;
+{%- if auth %}
+    use crate::JwtConfig;
+{%- endif %}
     use axum::body::Body;
     use axum::http::HeaderValue;
     use axum::http::{Request, StatusCode};
@@ -137,10 +154,14 @@ mod tests {
     use tower::ServiceExt;
 
     fn state() -> AppState {
+{%- if auth %}
         AppState::new(
             DatabaseConnection::default(),
             JwtConfig::new("test-secret", 3600),
         )
+{%- else %}
+        AppState::new(DatabaseConnection::default())
+{%- endif %}
     }
 
     #[test]
@@ -154,6 +175,7 @@ mod tests {
         let _router = init_router(state, config);
     }
 
+{%- if auth %}
     #[tokio::test]
     async fn login_route_is_explicitly_public() {
         let state = state();
@@ -182,6 +204,7 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
     }
+{%- endif %}
 
     #[tokio::test]
     async fn openapi_document_is_explicitly_public() {

@@ -6,7 +6,9 @@ use std::sync::OnceLock;
 pub struct Settings {
     pub server: ServerConfig,
     pub database: DatabaseConfig,
+{%- if auth %}
     pub auth: AuthConfig,
+{%- endif %}
     #[serde(default)]
     pub log: LogConfig,
 }
@@ -54,6 +56,7 @@ fn default_timezone_offset() -> i32 {
     8
 }
 
+{%- if auth %}
 #[derive(Clone, Deserialize)]
 pub struct AuthConfig {
     pub jwt_secret: String,
@@ -70,6 +73,7 @@ impl std::fmt::Debug for AuthConfig {
             .finish()
     }
 }
+{%- endif %}
 
 fn default_request_timeout_seconds() -> u64 {
     30
@@ -83,9 +87,11 @@ fn default_cors_origins() -> Vec<String> {
     vec!["http://localhost:3000".to_string()]
 }
 
+{%- if auth %}
 fn default_access_token_ttl_seconds() -> u64 {
     2 * 60 * 60
 }
+{%- endif %}
 
 impl Default for LogConfig {
     fn default() -> Self {

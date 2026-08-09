@@ -10,10 +10,12 @@ url = "postgres://postgres:root@localhost:5432/postgres"
 max_connections = 100
 min_connections = 5
 
+{% if auth %}
 [auth]
 # 仅用于本地开发，部署时请在 config/local.toml 中替换为足够长的随机字符串。
 jwt_secret = "dev-only-change-this-jwt-secret"
 access_token_ttl_seconds = 7200
+{% endif %}
 
 [log]
 # 以下配置均可省略，使用代码默认值

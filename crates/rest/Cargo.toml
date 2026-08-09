@@ -21,7 +21,9 @@ inventory = { workspace = true }
 
 serde = { workspace = true }
 thiserror = { workspace = true }
+{% if auth %}
 jsonwebtoken = { workspace = true }
+{% endif %}
 
 # swagger doc
 utoipa = { workspace = true }
