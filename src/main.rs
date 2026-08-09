@@ -1,6 +1,8 @@
 mod db;
+mod router;
 
 use crate::db::init_db;
+use crate::router::init_router_config;
 use infrastructure::config::{LogConfig, SETTINGS, init_config};
 use rest::{AppState, init_router};
 use tracing::info;
@@ -15,6 +17,7 @@ async fn main() {
     let pool = init_db(&setting.database).await.expect("数据库连接失败");
 
     let state = AppState::new(pool);
+    let router_config = init_router_config(setting);
 
     let listener =
         tokio::net::TcpListener::bind(format!("{}:{}", setting.server.host, setting.server.port))
@@ -22,7 +25,7 @@ async fn main() {
             .expect("服务端口绑定失败");
 
     info!("服务启动成功");
-    axum::serve(listener, init_router(state))
+    axum::serve(listener, init_router(state, router_config))
         .await
         .expect("服务启动失败");
 }

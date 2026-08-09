@@ -1,8 +1,6 @@
 use crate::AppState;
 use crate::error::ApiResult;
-use crate::handlers::demo::models::{
-    CreateDemoReqDTO, DemoDTO, PatchDemoReqDTO, UpdateDemoReqDTO,
-};
+use crate::handlers::demo::models::{CreateDemoReqDTO, DemoDTO, PatchDemoReqDTO, UpdateDemoReqDTO};
 use api::{ApiResponse, Empty, PageQuery, PageResult};
 use application::service::demo as demo_application;
 use application::service::demo::models::{PatchDemoCommand, UpdateDemoCommand};

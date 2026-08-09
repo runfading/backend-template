@@ -14,6 +14,12 @@ pub struct Settings {
 pub struct ServerConfig {
     pub host: String,
     pub port: u16,
+    #[serde(default = "default_request_timeout_seconds")]
+    pub request_timeout_seconds: u64,
+    #[serde(default = "default_max_body_size_mb")]
+    pub max_body_size_mb: usize,
+    #[serde(default = "default_cors_origins")]
+    pub cors_origins: Vec<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -45,6 +51,18 @@ fn default_name_prefix() -> String {
 
 fn default_timezone_offset() -> i32 {
     8
+}
+
+fn default_request_timeout_seconds() -> u64 {
+    30
+}
+
+fn default_max_body_size_mb() -> usize {
+    2
+}
+
+fn default_cors_origins() -> Vec<String> {
+    vec!["http://localhost:3000".to_string()]
 }
 
 impl Default for LogConfig {

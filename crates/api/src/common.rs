@@ -36,6 +36,14 @@ impl<T> ApiResponse<T> {
             data: self.data.map(f),
         }
     }
+
+    pub fn empty() -> Self {
+        Self {
+            code: SUCCESS_CODE,
+            message: SUCCESS_MESSAGE.to_string(),
+            data: None,
+        }
+    }
 }
 
 impl ApiResponse<Empty> {

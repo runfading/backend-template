@@ -1,2 +1,2 @@
-pub mod migration;
 pub mod config;
+pub mod migration;
