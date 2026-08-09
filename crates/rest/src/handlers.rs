@@ -1,9 +1,12 @@
+mod auth;
 mod demo;
 
+use crate::auth::require_auth;
 pub use crate::state::AppState;
 use axum::Router;
 use axum::extract::{DefaultBodyLimit, Request};
 use axum::http::{HeaderName, HeaderValue, Method, StatusCode, header};
+use axum::middleware;
 use std::time::Duration;
 use tower_http::cors::{AllowOrigin, CorsLayer};
 use tower_http::request_id::{
@@ -12,6 +15,7 @@ use tower_http::request_id::{
 use tower_http::timeout::TimeoutLayer;
 use tower_http::trace::{DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::{Level, info_span};
+use utoipa::openapi::security::{Http, HttpAuthScheme, SecurityRequirement, SecurityScheme};
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_swagger_ui::SwaggerUi;
 
@@ -27,7 +31,13 @@ pub struct RouteRegistrar {
     pub routes_fn: fn() -> OpenApiRouter<AppState>,
 }
 
+/// Routes registered here explicitly bypass access-token validation.
+pub struct PublicRouteRegistrar {
+    pub routes_fn: fn() -> OpenApiRouter<AppState>,
+}
+
 inventory::collect!(RouteRegistrar);
+inventory::collect!(PublicRouteRegistrar);
 
 pub fn init_router(state: AppState, config: RouterConfig) -> Router {
     let trace_layer = TraceLayer::new_for_http()
@@ -62,7 +72,7 @@ pub fn init_router(state: AppState, config: RouterConfig) -> Router {
         .allow_credentials(true);
 
     Router::new()
-        .merge(routers())
+        .merge(routers(state.clone()))
         .with_state(state)
         .layer(DefaultBodyLimit::max(config.max_body_size))
         .layer(TimeoutLayer::with_status_code(
@@ -81,35 +91,111 @@ pub fn init_router(state: AppState, config: RouterConfig) -> Router {
 }
 
 fn swagger_router(api: OpenApiRouter<AppState>) -> Router<AppState> {
-    let (router, api) = api.split_for_parts();
+    let (router, mut api) = api.split_for_parts();
+    let components = api.components.get_or_insert_default();
+    components.add_security_scheme(
+        "bearerAuth",
+        SecurityScheme::Http(Http::new(HttpAuthScheme::Bearer)),
+    );
+    api.security = Some(vec![SecurityRequirement::new(
+        "bearerAuth",
+        Vec::<String>::new(),
+    )]);
     router.merge(SwaggerUi::new("/swagger-ui").url("/apidoc/openapi.json", api))
 }
 
-pub fn routers() -> Router<AppState> {
-    let mut router = OpenApiRouter::new();
+pub fn routers(state: AppState) -> Router<AppState> {
+    let mut protected_router = OpenApiRouter::new();
     for registrar in inventory::iter::<RouteRegistrar> {
-        router = router.merge((registrar.routes_fn)());
+        protected_router = protected_router.merge((registrar.routes_fn)());
     }
+
+    // 需要token校验的
+    let protected_router =
+        protected_router.route_layer(middleware::from_fn_with_state(state, require_auth));
+
+    // 无需校验的
+    let mut public_router = OpenApiRouter::new();
+    for registrar in inventory::iter::<PublicRouteRegistrar> {
+        public_router = public_router.merge((registrar.routes_fn)());
+    }
+
+    let router = protected_router.merge(public_router);
     let router = OpenApiRouter::from(swagger_router(router));
     Router::new().merge(router)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{RouterConfig, init_router};
-    use crate::AppState;
+    use super::{RouterConfig, init_router, routers};
+    use crate::{AppState, JwtConfig};
+    use axum::body::Body;
     use axum::http::HeaderValue;
+    use axum::http::{Request, StatusCode};
     use sea_orm::DatabaseConnection;
     use std::time::Duration;
+    use tower::ServiceExt;
+
+    fn state() -> AppState {
+        AppState::new(
+            DatabaseConnection::default(),
+            JwtConfig::new("test-secret", 3600),
+        )
+    }
 
     #[test]
     fn builds_router_from_shared_database_pool() {
-        let state = AppState::new(DatabaseConnection::default());
+        let state = state();
         let config = RouterConfig {
             request_timeout: Duration::from_secs(30),
             max_body_size: 2 * 1024 * 1024,
             cors_origins: vec![HeaderValue::from_static("http://localhost:3000")],
         };
         let _router = init_router(state, config);
+    }
+
+    #[tokio::test]
+    async fn login_route_is_explicitly_public() {
+        let state = state();
+        let app = routers(state.clone()).with_state(state);
+        let response = app
+            .oneshot(
+                Request::post("/auth/login")
+                    .header("content-type", "application/json")
+                    .body(Body::from(r#"{"user_id":1}"#))
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn regular_routes_require_an_access_token_by_default() {
+        let state = state();
+        let app = routers(state.clone()).with_state(state);
+        let response = app
+            .oneshot(Request::get("/demo/list").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn openapi_document_is_explicitly_public() {
+        let state = state();
+        let app = routers(state.clone()).with_state(state);
+        let response = app
+            .oneshot(
+                Request::get("/apidoc/openapi.json")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
     }
 }

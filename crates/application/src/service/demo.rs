@@ -3,13 +3,13 @@ pub mod models;
 
 use crate::common::ApplicationResult;
 use crate::error::ApplicationError;
-use crate::service::demo::entity::{ActiveModel, Entity};
+use crate::service::demo::entity::{ActiveModel, Column, Entity};
 use crate::service::demo::models::{
     CreateDemoCommand, DemoDetails, PatchDemoCommand, UpdateDemoCommand,
 };
 use api::{ApiResponse, Empty, PageQuery, PageResult};
 use sea_orm::entity::prelude::*;
-use sea_orm::{ActiveModelTrait, EntityTrait, Set, TryIntoModel};
+use sea_orm::{ActiveModelTrait, EntityTrait, QueryOrder, Set, TryIntoModel};
 
 pub async fn list(db: &DatabaseConnection) -> ApplicationResult<Vec<DemoDetails>> {
     let demos: Vec<DemoDetails> = Entity::find()
@@ -26,7 +26,10 @@ pub async fn page(
     query: PageQuery,
 ) -> ApplicationResult<PageResult<DemoDetails>> {
     let query = query.normalized();
-    let paginator = Entity::find().paginate(db, query.page_size);
+    let paginator = Entity::find()
+        .order_by_desc(Column::CreatedAt)
+        .paginate(db, query.page_size);
+
     let total = paginator.num_items().await?;
     let items: Vec<DemoDetails> = paginator
         .fetch_page(query.page - 1)

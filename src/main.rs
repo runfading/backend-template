@@ -4,7 +4,7 @@ mod router;
 use crate::db::init_db;
 use crate::router::init_router_config;
 use infrastructure::config::{LogConfig, SETTINGS, init_config};
-use rest::{AppState, init_router};
+use rest::{AppState, JwtConfig, init_router};
 use tracing::info;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
@@ -16,7 +16,11 @@ async fn main() {
     let _guard = init_logging(&setting.log);
     let pool = init_db(&setting.database).await.expect("数据库连接失败");
 
-    let state = AppState::new(pool);
+    let jwt_config = JwtConfig::new(
+        setting.auth.jwt_secret.clone(),
+        setting.auth.access_token_ttl_seconds,
+    );
+    let state = AppState::new(pool, jwt_config);
     let router_config = init_router_config(setting);
 
     let listener =

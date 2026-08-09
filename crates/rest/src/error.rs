@@ -1,4 +1,4 @@
-use api::{ApiResponse, INTERNAL_SERVER_ERROR_CODE, NOT_FOUND_CODE};
+use api::{ApiErrorCode, ApiResponse};
 use application::error::ApplicationError;
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
@@ -8,6 +8,12 @@ use tracing::error;
 pub enum ApiError {
     #[error(transparent)]
     ApplicationError(#[from] ApplicationError),
+
+    #[error("unauthorized: {0}")]
+    Unauthorized(&'static str),
+
+    #[error("failed to create access token")]
+    TokenCreation(#[source] jsonwebtoken::errors::Error),
 }
 
 pub type ApiResult<T> = Result<ApiResponse<T>, ApiError>;
@@ -18,15 +24,22 @@ impl IntoResponse for ApiError {
             ApiError::ApplicationError(ApplicationError::BizError(biz)) => {
                 (StatusCode::OK, biz.code, biz.message.to_string())
             }
-            ApiError::ApplicationError(ApplicationError::NotFound(message)) => {
-                (StatusCode::NOT_FOUND, NOT_FOUND_CODE, message.clone())
-            }
+            ApiError::ApplicationError(ApplicationError::NotFound(message)) => (
+                StatusCode::NOT_FOUND,
+                ApiErrorCode::NOT_FOUND.code(),
+                message.clone(),
+            ),
+            ApiError::Unauthorized(message) => (
+                StatusCode::UNAUTHORIZED,
+                ApiErrorCode::UNAUTHORIZED.code(),
+                message.to_string(),
+            ),
             other => {
                 error!(error = %other, "internal server error");
                 (
                     StatusCode::INTERNAL_SERVER_ERROR,
-                    INTERNAL_SERVER_ERROR_CODE,
-                    "Internal Server Error".to_string(),
+                    ApiErrorCode::INTERNAL_SERVER.code(),
+                    ApiErrorCode::INTERNAL_SERVER.message().to_string(),
                 )
             }
         };

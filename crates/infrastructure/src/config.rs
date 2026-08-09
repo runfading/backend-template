@@ -6,6 +6,7 @@ use std::sync::OnceLock;
 pub struct Settings {
     pub server: ServerConfig,
     pub database: DatabaseConfig,
+    pub auth: AuthConfig,
     #[serde(default)]
     pub log: LogConfig,
 }
@@ -53,6 +54,23 @@ fn default_timezone_offset() -> i32 {
     8
 }
 
+#[derive(Clone, Deserialize)]
+pub struct AuthConfig {
+    pub jwt_secret: String,
+    #[serde(default = "default_access_token_ttl_seconds")]
+    pub access_token_ttl_seconds: u64,
+}
+
+impl std::fmt::Debug for AuthConfig {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter
+            .debug_struct("AuthConfig")
+            .field("jwt_secret", &"[REDACTED]")
+            .field("access_token_ttl_seconds", &self.access_token_ttl_seconds)
+            .finish()
+    }
+}
+
 fn default_request_timeout_seconds() -> u64 {
     30
 }
@@ -63,6 +81,10 @@ fn default_max_body_size_mb() -> usize {
 
 fn default_cors_origins() -> Vec<String> {
     vec!["http://localhost:3000".to_string()]
+}
+
+fn default_access_token_ttl_seconds() -> u64 {
+    2 * 60 * 60
 }
 
 impl Default for LogConfig {

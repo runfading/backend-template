@@ -1,14 +1,66 @@
 use axum::Json;
 use axum::response::{IntoResponse, Response};
 use serde::Serialize;
+use std::convert::Into;
 use std::fmt::Debug;
 use tracing::{debug, error};
 use utoipa::ToSchema;
 
-pub const SUCCESS_CODE: u32 = 0;
-pub const SUCCESS_MESSAGE: &str = "success";
-pub const NOT_FOUND_CODE: u32 = 4040;
-pub const INTERNAL_SERVER_ERROR_CODE: u32 = 9999;
+#[derive(Debug, Clone)]
+pub struct ApiErrorCode {
+    code: u32,
+    message: &'static str,
+}
+
+macro_rules! define_code {
+    (
+        $(
+            $(#[$docs:meta])*
+            ($name:ident, $code:expr, $msg:expr);
+        )+
+    ) => {
+        impl ApiErrorCode {
+            $(
+                $(#[$docs])*
+                pub const $name: Self = Self {
+                    code: $code,
+                    message: $msg,
+                };
+            )+
+        }
+
+        // // 可选：提供一个从 u32 查找错误码的函数（类似 canonical_reason）
+        // pub fn error_code_from_u32(code: u32) -> Option<&'static ApiErrorCode> {
+        //     match code {
+        //         $(
+        //             $code => Some(&ApiErrorCode::$name),
+        //         )+
+        //         _ => None,
+        //     }
+        // }
+    };
+}
+
+impl ApiErrorCode {
+    pub fn code(&self) -> u32 {
+        self.code
+    }
+
+    pub fn message(&self) -> &'static str {
+        self.message
+    }
+}
+
+define_code! {
+    /// 成功
+    (SUCCESS, 0, "success");
+    /// 未找到
+    (NOT_FOUND, 4040, "not found");
+    /// 未认证
+    (UNAUTHORIZED, 4010, "auth failure");
+    /// 服务器内部错误
+    (INTERNAL_SERVER, 9999, "internal server error");
+}
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct Empty {}
@@ -23,8 +75,8 @@ pub struct ApiResponse<T> {
 impl<T> ApiResponse<T> {
     pub fn ok(data: T) -> Self {
         Self {
-            code: SUCCESS_CODE,
-            message: SUCCESS_MESSAGE.to_string(),
+            code: ApiErrorCode::SUCCESS.code(),
+            message: ApiErrorCode::SUCCESS.message.to_string(),
             data: Some(data),
         }
     }
@@ -39,8 +91,8 @@ impl<T> ApiResponse<T> {
 
     pub fn empty() -> Self {
         Self {
-            code: SUCCESS_CODE,
-            message: SUCCESS_MESSAGE.to_string(),
+            code: ApiErrorCode::SUCCESS.code(),
+            message: ApiErrorCode::SUCCESS.message.to_string(),
             data: None,
         }
     }
@@ -57,8 +109,8 @@ impl ApiResponse<Empty> {
 
     pub fn empty_ok() -> Self {
         Self {
-            code: SUCCESS_CODE,
-            message: SUCCESS_MESSAGE.to_string(),
+            code: ApiErrorCode::SUCCESS.code(),
+            message: ApiErrorCode::SUCCESS.message().to_string(),
             data: Some(Empty {}),
         }
     }
